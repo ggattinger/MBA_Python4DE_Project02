@@ -1,0 +1,4 @@
+2024-09-02 06:55:03 | ERROR | Os campos não possuem a mesma quantidade significativa de informações.
+2024-09-02 06:55:03 | INFO | Início da execução
+2024-09-02 06:55:03 | WARNING | Coluna tailnum possui mais nulos do que o esperado.
+2024-09-02 06:55:03 | ERROR | Coluna tailnum possui mais nulos do que o esperado.
