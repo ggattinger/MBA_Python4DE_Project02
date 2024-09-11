@@ -41,7 +41,6 @@ if __name__ == "__main__":
 
     log_info(f"Criando uma variável [columns_map] com um loop utilizando a lista das novas colunas [new_columns]...")
     columns_map = {usecols[i]: new_columns[i] for i in range(len(usecols))}
-    # print(columns_map)
 
     log_info(f"Criando um novo DF [df_work] com uma cópia do DF [df_raw]...")
     df_work = df_raw.copy()
@@ -111,15 +110,15 @@ if __name__ == "__main__":
 
     df_work.loc[:,"datetime_partida_formatted"].dt.hour.apply(lambda x: classifica_hora(x))
 
-
     log_info(f"Cria um DF [df_filtrada] filtrando somente com os vôos válidos...")
     df_filtrada = df_dw[df_dw["atraso"]>-1].copy()
 
     log_info(f"Salva em um arquivo CSV [data/nycflights_tratada.csv] todos os vôos atrasados do DF [df_filtrada]...")
     df_filtrada.to_csv("data/nycflights_tratada.csv", index=False)
 
-
     key_columns = ['companhia_formatted', 'datetime_partida_formatted', 'id_voo', 'datetime_chegada_formatted']
     keys_check(df_work,key_columns)
+
+    print(df_filtrada.head())
 
     log_info(f"Execução do código concluída com sucesso!")
