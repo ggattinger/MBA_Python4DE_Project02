@@ -90,26 +90,33 @@ def null_check(df, null_tolerance):
             
 def keys_check(df, cols_chaves):
     '''
-    Função Para validar as chaves basta saber se o campo(s) chave(s) possuem a mesma quantidade de observações únicas em relação a quantidade de observações da base.
-    \nINPUT: data_frame and key_columns
-    \nOUTPUT: ???????????????????????????
+    Função para validar se a quantidade de informações no DataFrame confere com a quantidade de informações nas colunas chaves.
+    \nINPUT: DataFrame e colunas chaves
+    \nOUTPUT: Retorna verdadeiro ou falso para a verificação dos valores.
     '''
-    #colocar log info
-    # len(df_work[['companhia_formatted','datetime_partida_formatted', 'id_voo','datetime_chegada_formatted']].drop_duplicates()) == len(df_work)
-    if len(df) == len(cols_chaves):
-        # logger.info(f"{datetime.datetime.now()} | Os campos possuem a mesma quantidade significativa de informações.") 
+    # f_df = df[cols_chaves]
+    if len(df) == len(df[cols_chaves].drop_duplicates()):
         log_info("Os campos possuem a mesma quantidade significativa de informações.")
     else:
-        # logger.error(f"{datetime.datetime.now()} | Os campos não possuem a mesma quantidade significativa de informações.")
-        log_error("Os campos não possuem a mesma quantidade significativa de informações.")
+        log_error("Os campos declarados como chave não são chaves.")
     pass
 
 # Funções auxiliares ----------------------------------------------------------------
 
 def padroniza_str(obs):
+    '''
+    Função para padronizar todos os caracteres para UPPERCASE.
+    \nINPUT: obs
+    \nOUTPUT: Retorna o input com todas as strings em UPPERCASE
+    '''
     return re.sub('[^A-Za-z0-9]+', '', obs.upper())
 
 def corrige_hora(hr_str, dct_hora = {1:"000?",2:"00?",3:"0?",4:"?"}):
+    '''
+    Função para corrigir horários de vôos nas viradas de dia.
+    \nINPUT: hora
+    \nOUTPUT: Retorna a hora formatada corretamente
+    '''
     if hr_str == "2400":
         return "00:00"
     elif (len(hr_str) == 2) & (int(hr_str) <= 12):
@@ -119,18 +126,46 @@ def corrige_hora(hr_str, dct_hora = {1:"000?",2:"00?",3:"0?",4:"?"}):
         return f"{hora[:2]}:{hora[2:]}"
     
 def classifica_hora(hra):
+    '''
+    Função para classificar o horário do dia dos vôos.
+    \nINPUT: hora
+    \nOUTPUT: Retorna horário do dia.
+    '''
     if 0 <= hra < 6: return "MADRUGADA"
     elif 6 <= hra < 12: return "MANHA"
     elif 12 <= hra < 18: return "TARDE"
     else: return "NOITE"
 
 def flg_status(atraso):
+    '''
+    Função para classificar se o vôo está atrasado ou não.
+    \nINPUT: atraso calculado
+    \nOUTPUT: Retorna o identificador.
+    '''
     if atraso > 0.5 : return "ATRASO"
     else: return "ONTIME"
+
+def feat_eng(df):
+    '''
+    Função para adicionar campos calculados a um DF.
+    \nINPUT: data_frame
+    \nOUTPUT: Adiciona os campos ao DF usado no input.
+    '''
+    df["tempo_voo_esperado"] = (df["datetime_chegada_formatted"] - df["datetime_partida_formatted"]) / pd.Timedelta(hours=1)
+    df["tempo_voo_hr"] = df["tempo_voo"] /60
+    df["atraso"] = df["tempo_voo_hr"] - df["tempo_voo_esperado"]
+    df["dia_semana"] = df["data_voo"].dt.day_of_week #0=segunda
+    df["horario"] = df.loc[:,"datetime_partida_formatted"].dt.hour.apply(lambda x: classifica_hora(x))
+    df["flg_status"] = df.loc[:,"atraso"].apply(lambda x: flg_status(x))
 
 # Função de log
 
 def log_info(msg):
+    '''
+    Função para adicionar informações ao arquivo de log, com nível INFO.
+    \nINPUT: mensagem
+    \nOUTPUT: Adiciona a mensagem ao log file.
+    '''
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         filename='data/flights_pipe.log', encoding='utf-8', 
@@ -140,6 +175,11 @@ def log_info(msg):
     logger.info(msg)
 
 def log_error(msg):
+    '''
+    Função para adicionar informações ao arquivo de log, com nível ERROR.
+    \nINPUT: mensagem
+    \nOUTPUT: Adiciona a mensagem ao log file.
+    '''
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         filename='data/flights_pipe.log', encoding='utf-8', 
@@ -149,6 +189,11 @@ def log_error(msg):
     logger.error(msg)
     
 def log_warning(msg):
+    '''
+    Função para adicionar informações ao arquivo de log, com nível WARNING.
+    \nINPUT: mensagem
+    \nOUTPUT: Adiciona a mensagem ao log file.
+    '''
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         filename='data/flights_pipe.log', encoding='utf-8', 
